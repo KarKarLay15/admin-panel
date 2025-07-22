@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="my" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalesDash Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg-color: #ffffff;
+            --text-color: #0f172a;
+            --text-muted-color: #64748b;
+            --border-color: #e2e8f0;
+            --primary-color: #4f46e5;
+            --primary-hover-color: #4338ca;
+        }
+        html.dark {
+            --bg-color: #020617;
+            --card-bg-color: #1e293b;
+            --text-color: #e2e8f0;
+            --text-muted-color: #94a3b8;
+            --border-color: #334155;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .btn {
+            transition: all 0.2s ease;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Login Section -->
+    <div id="login-section" class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-[var(--card-bg-color)] p-8 rounded-2xl shadow-lg border border-[var(--border-color)]">
+            <div class="text-center mb-8">
+                <i class="fas fa-shield-halved text-4xl text-[var(--primary-color)]"></i>
+                <h1 class="text-2xl font-bold mt-4">Admin Panel Login</h1>
+                <p class="text-[var(--text-muted-color)] text-sm">Please enter your admin credentials.</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-[var(--text-muted-color)] mb-1">Email</label>
+                    <input type="email" id="email" class="w-full px-4 py-2 rounded-lg bg-[var(--bg-color)] border-[var(--border-color)] focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" required>
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-[var(--text-muted-color)] mb-1">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 rounded-lg bg-[var(--bg-color)] border-[var(--border-color)] focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" required>
+                </div>
+                <p id="auth-error" class="text-sm text-center text-red-500 h-4"></p>
+                <div class="pt-2">
+                    <button type="submit" id="login-btn" class="btn w-full text-white font-bold py-3 px-4 rounded-lg bg-[var(--primary-color)] hover:bg-[var(--primary-hover-color)] flex justify-center items-center">
+                        <span class="btn-text">Login</span>
+                        <i class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel Section -->
+    <div id="admin-panel" class="hidden">
+        <header class="bg-[var(--card-bg-color)] shadow-md border-b border-[var(--border-color)] sticky top-0 z-10">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-shield-halved text-2xl text-[var(--primary-color)]"></i>
+                        <h1 class="text-xl font-bold">SalesDash Admin</h1>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <p id="admin-email" class="text-sm text-[var(--text-muted-color)] hidden sm:block"></p>
+                        <button id="logout-btn" class="text-sm font-medium text-red-500 hover:text-red-700">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+            <h2 class="text-2xl font-bold mb-6">Upgrade Requests</h2>
+            
+            <div class="bg-[var(--card-bg-color)] rounded-2xl shadow-lg border border-[var(--border-color)] overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-[var(--bg-color)] text-xs text-[var(--text-muted-color)] uppercase">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Date</th>
+                                <th scope="col" class="px-6 py-3">User Email</th>
+                                <th scope="col" class="px-6 py-3">Transaction ID</th>
+                                <th scope="col" class="px-6 py-3">Screenshot</th>
+                                <th scope="col" class="px-6 py-3">Status</th>
+                                <th scope="col" class="px-6 py-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requests-table-body">
+                            <!-- Rows will be injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-requests-message" class="hidden text-center py-16 text-[var(--text-muted-color)]">
+                    <i class="fas fa-inbox text-5xl mb-4"></i>
+                    <p class="text-lg font-semibold">No Pending Requests</p>
+                    <p>There are currently no new upgrade requests.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div id="screenshot-modal" class="modal fixed inset-0 bg-black bg-opacity-60 h-full w-full hidden z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl p-4 shadow-lg rounded-2xl bg-[var(--card-bg-color)]">
+            <div class="flex justify-between items-center pb-3 mb-4">
+                 <h3 class="text-xl font-bold">Screenshot</h3>
+                 <button id="close-screenshot-modal-btn" class="text-[var(--text-muted-color)] hover:text-[var(--text-color)] text-2xl">&times;</button>
+            </div>
+            <img id="screenshot-image" src="" alt="Payment Screenshot" class="w-full h-auto max-h-[70vh] object-contain">
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 w-80 rounded-lg shadow-lg hidden z-50"></div>
+
+    <script>
+        // Use the same Firebase config from your main app
+        window.firebaseConfig = {
+          apiKey: "AIzaSyDpPITUwHiRlxbC16gR7mBAhubEYtPhENQ",
+          authDomain: "sales-dashboard-1100a.firebaseapp.com",
+          projectId: "sales-dashboard-1100a",
+          storageBucket: "sales-dashboard-1100a.appspot.com",
+          messagingSenderId: "885128519230",
+          appId: "1:885128519230:web:a626fd839f6523fab6bb6f"
+        };
+    </script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query, doc, updateDoc, getDoc, setDoc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Firebase Initialization ---
+            let app, auth, db;
+            try {
+                app = initializeApp(window.firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                document.body.innerHTML = `<div class="p-4 text-red-700 bg-red-100">Firebase initialization failed. Check console.</div>`;
+                return;
+            }
+
+            // --- State ---
+            let unsubscribeRequests = null;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+            // --- DOM Elements ---
+            const DOM = {
+                loginSection: document.getElementById('login-section'),
+                adminPanel: document.getElementById('admin-panel'),
+                loginForm: document.getElementById('login-form'),
+                emailInput: document.getElementById('email'),
+                passwordInput: document.getElementById('password'),
+                loginBtn: document.getElementById('login-btn'),
+                authError: document.getElementById('auth-error'),
+                logoutBtn: document.getElementById('logout-btn'),
+                adminEmail: document.getElementById('admin-email'),
+                requestsTableBody: document.getElementById('requests-table-body'),
+                noRequestsMessage: document.getElementById('no-requests-message'),
+                screenshotModal: document.getElementById('screenshot-modal'),
+                closeScreenshotModalBtn: document.getElementById('close-screenshot-modal-btn'),
+                screenshotImage: document.getElementById('screenshot-image'),
+                toastEl: document.getElementById('toast'),
+            };
+
+            // --- UI Functions ---
+            const ui = {
+                showToast: (message, isError = false) => {
+                    const bgColor = isError ? 'bg-red-500' : 'bg-green-500';
+                    const icon = isError ? 'fa-times-circle' : 'fa-check-circle';
+                    DOM.toastEl.innerHTML = `<div class="flex items-center p-4 ${bgColor} text-white rounded-lg shadow-lg"><i class="fas ${icon} mr-3"></i>${message}</div>`;
+                    DOM.toastEl.classList.remove('hidden');
+                    setTimeout(() => DOM.toastEl.classList.add('hidden'), 3000);
+                },
+                toggleButtonLoading: (button, isLoading) => {
+                    const btnText = button.querySelector('.btn-text');
+                    const spinner = button.querySelector('i');
+                    button.disabled = isLoading;
+                    if (isLoading) {
+                        if(btnText) btnText.classList.add('hidden');
+                        spinner.classList.remove('hidden');
+                    } else {
+                        if(btnText) btnText.classList.remove('hidden');
+                        spinner.classList.add('hidden');
+                    }
+                },
+                renderRequests: (requests) => {
+                    DOM.requestsTableBody.innerHTML = '';
+                    DOM.noRequestsMessage.classList.toggle('hidden', requests.length > 0);
+                    
+                    requests.forEach(req => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'border-b border-[var(--border-color)]';
+                        const requestedDate = req.requestedAt ? req.requestedAt.toDate().toLocaleDateString() : 'N/A';
+                        
+                        let statusBadge;
+                        switch (req.status) {
+                            case 'approved':
+                                statusBadge = `<span class="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Approved</span>`;
+                                break;
+                            case 'rejected':
+                                statusBadge = `<span class="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">Rejected</span>`;
+                                break;
+                            default:
+                                statusBadge = `<span class="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">Pending</span>`;
+                        }
+
+                        tr.innerHTML = `
+                            <td class="px-6 py-4">${requestedDate}</td>
+                            <td class="px-6 py-4 font-medium">${req.userEmail}</td>
+                            <td class="px-6 py-4">${req.transactionId}</td>
+                            <td class="px-6 py-4">
+                                <button data-url="${req.screenshotURL}" class="view-ss-btn text-[var(--primary-color)] hover:underline">View</button>
+                            </td>
+                            <td class="px-6 py-4">${statusBadge}</td>
+                            <td class="px-6 py-4">
+                                ${req.status === 'pending' ? `
+                                <div class="flex gap-2">
+                                    <button data-req-id="${req.id}" data-user-id="${req.userId}" class="approve-btn btn text-xs font-bold text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-md">Approve</button>
+                                    <button data-req-id="${req.id}" class="reject-btn btn text-xs font-bold text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md">Reject</button>
+                                </div>
+                                ` : '-'}
+                            </td>
+                        `;
+                        DOM.requestsTableBody.appendChild(tr);
+                    });
+                }
+            };
+
+            // --- Main Logic ---
+            const admin = {
+                isUserAdmin: async (uid) => {
+                    const adminDocRef = doc(db, 'admins', uid);
+                    const adminDoc = await getDoc(adminDocRef);
+                    return adminDoc.exists();
+                },
+                fetchRequests: () => {
+                    if (unsubscribeRequests) unsubscribeRequests();
+                    const q = query(collection(db, "upgrade_requests"), orderBy("requestedAt", "desc"));
+                    unsubscribeRequests = onSnapshot(q, (snapshot) => {
+                        const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        ui.renderRequests(requests);
+                    });
+                },
+                updateRequestStatus: async (reqId, newStatus) => {
+                    const reqDocRef = doc(db, 'upgrade_requests', reqId);
+                    await updateDoc(reqDocRef, { status: newStatus });
+                },
+                upgradeUserPlan: async (userId) => {
+                    const planDocRef = doc(db, 'artifacts', appId, 'users', userId, 'subscription', 'status');
+                    await setDoc(planDocRef, { plan: 'pro', updatedAt: serverTimestamp() });
+                }
+            };
+
+            // --- Event Handlers ---
+            const handlers = {
+                handleLogin: async (e) => {
+                    e.preventDefault();
+                    DOM.authError.textContent = '';
+                    ui.toggleButtonLoading(DOM.loginBtn, true);
+                    try {
+                        await signInWithEmailAndPassword(auth, DOM.emailInput.value, DOM.passwordInput.value);
+                        // onAuthStateChanged will handle the rest
+                    } catch (error) {
+                        DOM.authError.textContent = "Invalid credentials or user is not an admin.";
+                        console.error("Login Error:", error);
+                    } finally {
+                        ui.toggleButtonLoading(DOM.loginBtn, false);
+                    }
+                },
+                handleTableClick: async (e) => {
+                    const target = e.target;
+                    if (target.classList.contains('view-ss-btn')) {
+                        DOM.screenshotImage.src = target.dataset.url;
+                        DOM.screenshotModal.classList.remove('hidden');
+                    }
+                    if (target.classList.contains('approve-btn')) {
+                        target.disabled = true;
+                        const reqId = target.dataset.reqId;
+                        const userId = target.dataset.userId;
+                        try {
+                            await admin.upgradeUserPlan(userId);
+                            await admin.updateRequestStatus(reqId, 'approved');
+                            ui.showToast('User plan upgraded successfully!');
+                        } catch (error) {
+                            console.error("Approval error:", error);
+                            ui.showToast('Failed to approve request.', true);
+                            target.disabled = false;
+                        }
+                    }
+                    if (target.classList.contains('reject-btn')) {
+                        target.disabled = true;
+                        const reqId = target.dataset.reqId;
+                        try {
+                            await admin.updateRequestStatus(reqId, 'rejected');
+                            ui.showToast('Request rejected.');
+                        } catch (error) {
+                            console.error("Rejection error:", error);
+                            ui.showToast('Failed to reject request.', true);
+                            target.disabled = false;
+                        }
+                    }
+                }
+            };
+
+            // --- Auth State Change ---
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const isAdmin = await admin.isUserAdmin(user.uid);
+                    if (isAdmin) {
+                        DOM.loginSection.classList.add('hidden');
+                        DOM.adminPanel.classList.remove('hidden');
+                        DOM.adminEmail.textContent = user.email;
+                        admin.fetchRequests();
+                    } else {
+                        ui.showToast("You don't have permission to access this panel.", true);
+                        await signOut(auth);
+                    }
+                } else {
+                    if (unsubscribeRequests) unsubscribeRequests();
+                    DOM.loginSection.classList.remove('hidden');
+                    DOM.adminPanel.classList.add('hidden');
+                }
+            });
+
+            // --- Event Listeners ---
+            DOM.loginForm.addEventListener('submit', handlers.handleLogin);
+            DOM.logoutBtn.addEventListener('click', () => signOut(auth));
+            DOM.requestsTableBody.addEventListener('click', handlers.handleTableClick);
+            DOM.closeScreenshotModalBtn.addEventListener('click', () => DOM.screenshotModal.classList.add('hidden'));
+            DOM.screenshotModal.addEventListener('click', (e) => {
+                if(e.target === DOM.screenshotModal) DOM.screenshotModal.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
